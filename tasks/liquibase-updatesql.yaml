@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: liquibase-updatesql
+spec:
+  params:
+    - name: jdbc-database-url
+    - name: jdbc-database-user
+    - name: jdbc-database-pass
+    - name: root-changelog-file
+  steps:
+    - name: liquibase-updatesql
+      image: liquibase/liquibase:4.13.0
+      workingDir: $(workspaces.source.path)
+      args: [
+        "--defaultsFile=liquibase.properties",
+        "--changelog-file=$(params.root-changelog-file)",
+        "--url=$(params.jdbc-database-url)",
+        "--username=$(params.jdbc-database-user)",
+        "--password=$(params.jdbc-database-pass)",
+        # "--outputFile=\"sql-update-commands\"",
+        "updateSQL"
+      ]
+  workspaces:
+    - name: source

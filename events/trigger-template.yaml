@@ -1,0 +1,40 @@
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: liquibase-pipeline-template
+spec:
+  params:
+    - name: gitrevision
+    - name: gitrepositoryurl
+    - name: createdat
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: liquibase-pipeline-run-
+      spec:
+        params:
+          - name: git-url
+            value: $(tt.params.gitrepositoryurl)
+          - name: git-revision
+            value: $(tt.params.gitrevision)
+          - name: jdbc-database-url
+            value: "<jdbc-database-url>"
+          - name: jdbc-database-user
+            value: "<jdbc-database-user>"
+          - name: jdbc-database-pass
+            value: "<jdbc-database-pass>"
+          - name: root-changelog-file
+            value: "example-changelog.sql"
+        pipelineRef:
+          name: liquibase-pipeline
+        workspaces:
+          - name: git-source
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 100Mi

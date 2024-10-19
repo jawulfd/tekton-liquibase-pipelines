@@ -1,0 +1,38 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: liquibase-status
+spec:
+  params:
+    - name: jdbc-database-url
+    - name: jdbc-database-user
+    - name: jdbc-database-pass
+    - name: root-changelog-file
+  results:
+    - name: status-message
+      description: liquibase status message
+  steps:
+    - name: liquibase-status
+      image: liquibase/liquibase:4.13.0
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/usr/bin/env bash
+
+        status_liquibase=$(/liquibase/liquibase \
+          --defaultsFile=liquibase.properties \
+          --changelog-file=$(params.root-changelog-file) \
+          --url=$(params.jdbc-database-url) \
+          --username=$(params.jdbc-database-user) \
+          --password=$(params.jdbc-database-pass) \
+          status --verbose)
+
+        # echo "status -> $status_liquibase"
+
+        if [[ $status_liquibase =~ "is up to date" ]]; then
+          echo -n "yes" >> $(results.status-message.path)
+        else
+          echo -n "no" >> $(results.status-message.path)
+        fi
+
+  workspaces:
+    - name: source

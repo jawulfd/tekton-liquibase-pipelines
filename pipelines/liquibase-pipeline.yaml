@@ -1,0 +1,159 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: liquibase-pipeline
+spec:
+  params:
+    - name: git-url
+    - name: git-revision
+    - name: jdbc-database-url
+    - name: jdbc-database-user
+    - name: jdbc-database-pass
+    - name: root-changelog-file
+    - name: environment
+    - name: database-type
+  workspaces:
+    - name: git-source
+  tasks:
+    # Git clone repo
+    - name: fetch-from-git
+      taskRef:
+        name: git-clone
+      params:
+       - name: url
+         value: $(params.git-url)
+       - name: revision
+         value: $(params.git-revision)
+      workspaces:
+       - name: output
+         workspace: git-source
+    # Liquibase validate
+    - name: liquibase-validate
+      taskRef:
+        name: liquibase-validate
+      runAfter:
+        - fetch-from-git
+      params:
+       - name: jdbc-database-url
+         value: $(params.jdbc-database-url)
+       - name: jdbc-database-user
+         value: $(params.jdbc-database-user)
+       - name: jdbc-database-pass
+         value: $(params.jdbc-database-pass)
+       - name: root-changelog-file
+         value: $(params.root-changelog-file)
+      workspaces:
+       - name: source
+         workspace: git-source
+    # Liquibase sanpshot
+    - name: liquibase-snapshot
+      runAfter:
+        - liquibase-validate
+      when:
+      - input: "$(params.environment)"
+        operator: notin
+        values: ["prod"]
+      taskRef:
+        name: liquibase-snapshot
+      params:
+       - name: jdbc-database-url
+         value: $(params.jdbc-database-url)
+       - name: jdbc-database-user
+         value: $(params.jdbc-database-user)
+       - name: jdbc-database-pass
+         value: $(params.jdbc-database-pass)
+      workspaces:
+       - name: source
+         workspace: git-source
+    # Liquibase status
+    - name: liquibase-status
+      runAfter:
+        - liquibase-validate
+      taskRef:
+        name: liquibase-status
+      params:
+       - name: jdbc-database-url
+         value: $(params.jdbc-database-url)
+       - name: jdbc-database-user
+         value: $(params.jdbc-database-user)
+       - name: jdbc-database-pass
+         value: $(params.jdbc-database-pass)
+       - name: root-changelog-file
+         value: $(params.root-changelog-file)
+      workspaces:
+       - name: source
+         workspace: git-source
+    # Liquibase updatesql
+    - name: liquibase-updatesql
+      runAfter:
+        - liquibase-status
+      taskRef:
+        name: liquibase-updatesql
+      when:
+        - input: "$(tasks.liquibase-status.results.status-message)"
+          operator: in
+          values: ["no"]
+        - input: "$(params.environment)"
+          operator: notin
+          values: ["prod"]
+      params:
+       - name: jdbc-database-url
+         value: $(params.jdbc-database-url)
+       - name: jdbc-database-user
+         value: $(params.jdbc-database-user)
+       - name: jdbc-database-pass
+         value: $(params.jdbc-database-pass)
+       - name: root-changelog-file
+         value: $(params.root-changelog-file)
+      workspaces:
+       - name: source
+         workspace: git-source
+    # Liquibase update
+    - name: liquibase-update
+      runAfter:
+        - liquibase-status
+        - liquibase-snapshot
+        - liquibase-updatesql
+      taskRef:
+        name: liquibase-update
+      when:
+        - input: "$(tasks.liquibase-status.results.status-message)"
+          operator: in
+          values: ["no"]
+      params:
+       - name: jdbc-database-url
+         value: $(params.jdbc-database-url)
+       - name: jdbc-database-user
+         value: $(params.jdbc-database-user)
+       - name: jdbc-database-pass
+         value: $(params.jdbc-database-pass)
+       - name: root-changelog-file
+         value: $(params.root-changelog-file)
+      workspaces:
+       - name: source
+         workspace: git-source
+    # Liquibase diff
+    - name: liquibase-diff
+      runAfter:
+        - liquibase-update
+      when:
+        - input: "$(params.environment)"
+          operator: notin
+          values: ["prod"]
+        - input: "$(tasks.liquibase-status.results.status-message)"
+          operator: in
+          values: ["no"]
+      taskRef:
+        name: liquibase-diff
+      params:
+       - name: jdbc-database-url
+         value: $(params.jdbc-database-url)
+       - name: jdbc-database-user
+         value: $(params.jdbc-database-user)
+       - name: jdbc-database-pass
+         value: $(params.jdbc-database-pass)
+       - name: database-type
+         value: $(params.database-type)
+      workspaces:
+       - name: source
+         workspace: git-source

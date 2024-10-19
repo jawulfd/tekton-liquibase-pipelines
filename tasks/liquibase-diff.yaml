@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: liquibase-diff
+spec:
+  params:
+    - name: jdbc-database-url
+    - name: jdbc-database-user
+    - name: jdbc-database-pass
+    - name: database-type
+  steps:
+    - name: liquibase-diff
+      image: liquibase/liquibase:4.13.0
+      workingDir: $(workspaces.source.path)
+      args: [
+        "--defaultsFile=liquibase.properties",
+        "--referenceUrl=$(params.jdbc-database-url)",
+        "--referenceUsername=$(params.jdbc-database-user)",
+        "--referencePassword=$(params.jdbc-database-pass)",
+        "--url=offline:$(params.database-type)?snapshot=snapshot.json",
+        "diff"
+      ]
+  workspaces:
+    - name: source

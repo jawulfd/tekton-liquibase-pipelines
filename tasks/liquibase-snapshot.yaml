@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: liquibase-snapshot
+spec:
+  params:
+    - name: jdbc-database-url
+    - name: jdbc-database-user
+    - name: jdbc-database-pass
+  steps:
+    - name: liquibase-snapshot
+      image: liquibase/liquibase:4.13.0
+      workingDir: $(workspaces.source.path)
+      args: [
+        "--defaultsFile=liquibase.properties",
+        "--url=$(params.jdbc-database-url)",
+        "--username=$(params.jdbc-database-user)",
+        "--password=$(params.jdbc-database-pass)",
+        "--output-file=snapshot.json",
+        "snapshot",
+        "--snapshotFormat=json"
+      ]
+  workspaces:
+    - name: source
