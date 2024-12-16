@@ -5,28 +5,34 @@ metadata:
   name: liquibase-pipeline-template
 spec:
   params:
-    - name: gitrevision
-    - name: gitrepositoryurl
-    - name: createdat
+    - name: git-revision
+      description: The git revision
+      default: develop
+    - name: git-url
+      description: The git repository url
+    - name: environment
+      description: Environment to deploy
+    - name: jdbc-database-secret
+      description: Secret path for JDBC Database Config
   resourcetemplates:
-    - apiVersion: tekton.dev/v1beta1
+    - apiVersion: tekton.dev/v1
       kind: PipelineRun
       metadata:
         generateName: liquibase-pipeline-run-
       spec:
         params:
           - name: git-url
-            value: $(tt.params.gitrepositoryurl)
+            value: $(tt.params.git-url)
           - name: git-revision
-            value: $(tt.params.gitrevision)
-          - name: jdbc-database-url
-            value: "<jdbc-database-url>"
-          - name: jdbc-database-user
-            value: "<jdbc-database-user>"
-          - name: jdbc-database-pass
-            value: "<jdbc-database-pass>"
+            value: $(tt.params.git-revision)
           - name: root-changelog-file
             value: "example-changelog.sql"
+          - name: database-type
+            value: "<database-type>"
+          - name: environment
+            value: $(tt.params.environment)
+          - name: jdbc-database-secret
+            value: $(tt.params.jdbc-database-secret)
         pipelineRef:
           name: liquibase-pipeline
         workspaces:

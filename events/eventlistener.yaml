@@ -4,13 +4,13 @@ kind: EventListener
 metadata:
   name: liquibase-pipeline-listener
 spec:
+  serviceAccountName: tekton-triggers-sa
   triggers:
     - name: liquibase-pipeline-listener
       interceptors:
         - ref:
             name: "github"
             kind: ClusterInterceptor
-            apiVersion: triggers.tekton.dev
           params:
             - name: "secretRef"
               value:
@@ -20,5 +20,6 @@ spec:
               value: ["push"]
       bindings:
         - ref: liquibase-pipeline-binding
+        - ref: dev-env
       template:
         ref: liquibase-pipeline-template

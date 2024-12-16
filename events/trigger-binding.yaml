@@ -1,13 +1,32 @@
----
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding
 metadata:
   name: liquibase-pipeline-binding
 spec:
   params:
-    - name: gitrevision
-      value: $(body.head_commit.id)
-    - name: gitrepositoryurl
-      value: $(body.repository.url)
-    - name: createdat
-      value: $(body.repository.created_at)
+  - name: git-revision
+    value: $(body.head_commit.id)
+  - name: git-url
+    value: $(body.repository.clone_url)
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: prod-env
+spec:
+  params:
+    - name: environment
+      value: prod
+    - name: jdbc-database-secret
+      value: "<jdbc-database-secret>"
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: dev-env
+spec:
+  params:
+    - name: environment
+      value: dev
+    - name: jdbc-database-secret
+      value: "<jdbc-database-secret>"

@@ -1,4 +1,4 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   generateName: liquibase-pipeline-run-
@@ -10,16 +10,12 @@ spec:
       value: "<git-url>"
     - name: git-revision
       value: "<git-revision>"
-    - name: jdbc-database-url
-      value: "<jdbc-database-url>"
-    - name: jdbc-database-user
-      value: "<jdbc-database-user>"
-    - name: jdbc-database-pass
-      value: "<jdbc-database-pass>"
+    - name: jdbc-database-secret
+      value: "<jdbc-database-secret>"
     - name: root-changelog-file
       value: "example-changelog.sql"
     - name: environment
-      value: "dev"
+      value: "<environment>"
     - name: database-type
       value: "<database-type>"
   workspaces:

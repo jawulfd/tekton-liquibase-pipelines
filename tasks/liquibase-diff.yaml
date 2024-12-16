@@ -1,24 +1,40 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: liquibase-diff
 spec:
   params:
-    - name: jdbc-database-url
-    - name: jdbc-database-user
-    - name: jdbc-database-pass
+    - name: jdbc-database-secret
     - name: database-type
   steps:
     - name: liquibase-diff
       image: liquibase/liquibase:4.13.0
       workingDir: $(workspaces.source.path)
-      args: [
-        "--defaultsFile=liquibase.properties",
-        "--referenceUrl=$(params.jdbc-database-url)",
-        "--referenceUsername=$(params.jdbc-database-user)",
-        "--referencePassword=$(params.jdbc-database-pass)",
-        "--url=offline:$(params.database-type)?snapshot=snapshot.json",
-        "diff"
-      ]
+      script: |
+        #!/usr/bin/env bash
+        
+        /liquibase/liquibase \
+        --defaultsFile=liquibase.properties \
+        --referenceUrl="${JDBC_DATABASE_URL}" \
+        --referenceUsername="${JDBC_DATABASE_USER}" \
+        --referencePassword="${JDBC_DATABASE_PASS}" \
+        --url=offline:$(params.database-type)?snapshot=snapshot.json \
+        diff
+      env:
+        - name: JDBC_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: $(params.jdbc-database-secret)
+              key: database-url
+        - name: JDBC_DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.jdbc-database-secret)
+              key: database-user
+        - name: JDBC_DATABASE_PASS
+          valueFrom:
+            secretKeyRef:
+              name: $(params.jdbc-database-secret)
+              key: database-pass
   workspaces:
     - name: source

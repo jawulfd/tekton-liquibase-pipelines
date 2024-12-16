@@ -1,17 +1,27 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: liquibase-pipeline
 spec:
   params:
     - name: git-url
+      type: string
+      description: Git url to clone
     - name: git-revision
-    - name: jdbc-database-url
-    - name: jdbc-database-user
-    - name: jdbc-database-pass
+      type: string
+      description: Git revision to clone
+    - name: jdbc-database-secret
+      type: string
+      description: Secret path for JDBC Database Config
     - name: root-changelog-file
+      type: string
+      description: Root Changelog filepath
     - name: environment
+      type: string
+      description: Environment to deploy
     - name: database-type
+      type: string
+      description: Database type
   workspaces:
     - name: git-source
   tasks:
@@ -34,34 +44,10 @@ spec:
       runAfter:
         - fetch-from-git
       params:
-       - name: jdbc-database-url
-         value: $(params.jdbc-database-url)
-       - name: jdbc-database-user
-         value: $(params.jdbc-database-user)
-       - name: jdbc-database-pass
-         value: $(params.jdbc-database-pass)
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
        - name: root-changelog-file
          value: $(params.root-changelog-file)
-      workspaces:
-       - name: source
-         workspace: git-source
-    # Liquibase sanpshot
-    - name: liquibase-snapshot
-      runAfter:
-        - liquibase-validate
-      when:
-      - input: "$(params.environment)"
-        operator: notin
-        values: ["prod"]
-      taskRef:
-        name: liquibase-snapshot
-      params:
-       - name: jdbc-database-url
-         value: $(params.jdbc-database-url)
-       - name: jdbc-database-user
-         value: $(params.jdbc-database-user)
-       - name: jdbc-database-pass
-         value: $(params.jdbc-database-pass)
       workspaces:
        - name: source
          workspace: git-source
@@ -72,21 +58,32 @@ spec:
       taskRef:
         name: liquibase-status
       params:
-       - name: jdbc-database-url
-         value: $(params.jdbc-database-url)
-       - name: jdbc-database-user
-         value: $(params.jdbc-database-user)
-       - name: jdbc-database-pass
-         value: $(params.jdbc-database-pass)
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
        - name: root-changelog-file
          value: $(params.root-changelog-file)
       workspaces:
        - name: source
          workspace: git-source
+    # Liquibase sanpshot
+    - name: liquibase-snapshot
+      when:
+      - input: "$(tasks.liquibase-status.results.status-message)"
+        operator: in
+        values: ["no"]
+      - input: "$(params.environment)"
+        operator: notin
+        values: ["prod"]
+      taskRef:
+        name: liquibase-snapshot
+      params:
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
+      workspaces:
+       - name: source
+         workspace: git-source
     # Liquibase updatesql
     - name: liquibase-updatesql
-      runAfter:
-        - liquibase-status
       taskRef:
         name: liquibase-updatesql
       when:
@@ -97,12 +94,8 @@ spec:
           operator: notin
           values: ["prod"]
       params:
-       - name: jdbc-database-url
-         value: $(params.jdbc-database-url)
-       - name: jdbc-database-user
-         value: $(params.jdbc-database-user)
-       - name: jdbc-database-pass
-         value: $(params.jdbc-database-pass)
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
        - name: root-changelog-file
          value: $(params.root-changelog-file)
       workspaces:
@@ -111,7 +104,6 @@ spec:
     # Liquibase update
     - name: liquibase-update
       runAfter:
-        - liquibase-status
         - liquibase-snapshot
         - liquibase-updatesql
       taskRef:
@@ -121,12 +113,8 @@ spec:
           operator: in
           values: ["no"]
       params:
-       - name: jdbc-database-url
-         value: $(params.jdbc-database-url)
-       - name: jdbc-database-user
-         value: $(params.jdbc-database-user)
-       - name: jdbc-database-pass
-         value: $(params.jdbc-database-pass)
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
        - name: root-changelog-file
          value: $(params.root-changelog-file)
       workspaces:
@@ -146,12 +134,8 @@ spec:
       taskRef:
         name: liquibase-diff
       params:
-       - name: jdbc-database-url
-         value: $(params.jdbc-database-url)
-       - name: jdbc-database-user
-         value: $(params.jdbc-database-user)
-       - name: jdbc-database-pass
-         value: $(params.jdbc-database-pass)
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
        - name: database-type
          value: $(params.database-type)
       workspaces:

@@ -1,25 +1,41 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: liquibase-updatesql
 spec:
   params:
-    - name: jdbc-database-url
-    - name: jdbc-database-user
-    - name: jdbc-database-pass
+    - name: jdbc-database-secret
     - name: root-changelog-file
   steps:
     - name: liquibase-updatesql
       image: liquibase/liquibase:4.13.0
       workingDir: $(workspaces.source.path)
-      args: [
-        "--defaultsFile=liquibase.properties",
-        "--changelog-file=$(params.root-changelog-file)",
-        "--url=$(params.jdbc-database-url)",
-        "--username=$(params.jdbc-database-user)",
-        "--password=$(params.jdbc-database-pass)",
-        # "--outputFile=\"sql-update-commands\"",
-        "updateSQL"
-      ]
+      script: |
+        #!/usr/bin/env bash
+        
+        /liquibase/liquibase \
+        --defaultsFile=liquibase.properties \
+        --changelog-file=$(params.root-changelog-file) \
+        --url="${JDBC_DATABASE_URL}" \
+        --username="${JDBC_DATABASE_USER}" \
+        --password="${JDBC_DATABASE_PASS}" \
+        --outputFile="sql-update-commands" \
+        updateSQL
+      env:
+        - name: JDBC_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: $(params.jdbc-database-secret)
+              key: database-url
+        - name: JDBC_DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.jdbc-database-secret)
+              key: database-user
+        - name: JDBC_DATABASE_PASS
+          valueFrom:
+            secretKeyRef:
+              name: $(params.jdbc-database-secret)
+              key: database-pass
   workspaces:
     - name: source
