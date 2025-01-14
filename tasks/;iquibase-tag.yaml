@@ -1,0 +1,44 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: liquibase-tag
+spec:
+  params:
+    - name: jdbc-database-secret
+    - name: git-revision
+  steps:
+    - name: liquibase-tag
+      image: liquibase/liquibase:4.13.0
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/usr/bin/env bash
+
+        gitTag=${git-revision##*/}
+
+        /liquibase/liquibase \
+          --defaultsFile=liquibase.properties \
+          --url="${JDBC_DATABASE_URL}" \
+          --username="${JDBC_DATABASE_USER}" \
+          --password="${JDBC_DATABASE_PASS}" \
+          --tag="${gitTag}" \
+          tag
+      env:
+        - name: JDBC_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: $(params.jdbc-database-secret)
+              key: database-url
+        - name: JDBC_DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: $(params.jdbc-database-secret)
+              key: database-user
+        - name: JDBC_DATABASE_PASS
+          valueFrom:
+            secretKeyRef:
+              name: $(params.jdbc-database-secret)
+              key: database-pass
+
+  workspaces:
+    - name: source
+
