@@ -10,6 +10,9 @@ spec:
       default: develop
     - name: git-url
       description: The git repository url
+    - name: git-ref-type
+      description: Git reference type -> branch or tag
+      default: branch
     - name: environment
       description: Environment to deploy
     - name: jdbc-database-secret
@@ -25,6 +28,8 @@ spec:
             value: $(tt.params.git-url)
           - name: git-revision
             value: $(tt.params.git-revision)
+          - name: git-ref-type
+            value: $(tt.params.git-ref-type)
           - name: root-changelog-file
             value: "example-changelog.sql"
           - name: database-type

@@ -8,6 +8,23 @@ spec:
     value: $(body.head_commit.id)
   - name: git-url
     value: $(body.repository.clone_url)
+  - name: git-ref-type
+    value: "branch"
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: liquibase-pipeline-tag-binding
+spec:
+  params:
+  - name: git-revision
+    value: "ref/tags/$(body.ref)"
+  - name: git-url
+    value: $(body.repository.clone_url)
+  - name: tag-name
+    value: $(body.ref)
+  - name: git-ref-type
+    value: "tag"
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerBinding

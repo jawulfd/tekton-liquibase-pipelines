@@ -1,0 +1,60 @@
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: liquibase-pipeline-listener
+spec:
+  serviceAccountName: tekton-triggers-sa
+  triggers:
+    - name: liquibase-pipeline-listener-dev
+      interceptors:
+        - ref:
+            name: "github"
+            kind: ClusterInterceptor
+          params:
+            - name: "secretRef"
+              value:
+                secretName: github-secret
+                secretKey: secretToken
+            - name: "eventTypes"
+              value: ["pull_request"]
+        - name: "only pull request merged to develop branch"
+          ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: >-
+                body.action in ['closed'] &&
+                body.pull_request.merged in [true] &&
+                body.pull_request.base.ref in ['develop']
+      bindings:
+        - ref: liquibase-pipeline-binding
+        - ref: dev-env
+      template:
+        ref: liquibase-pipeline-template
+    - name: liquibase-pipeline-listener-prod
+      interceptors:
+        - ref:
+            name: "github"
+            kind: ClusterInterceptor
+          params:
+            - name: "secretRef"
+              value:
+                secretName: github-secret-pr
+                secretKey: secretToken
+            - name: "eventTypes"
+              value: ["create"]
+        - name: "only when tag is created from main branch"
+          ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: >-
+                body.ref_type in ['tag'] &&
+                body.master_branch in ['main', 'master']
+      bindings:
+        - ref: liquibase-pipeline-tag-binding
+        - ref: prod-env
+      template:
+        ref: liquibase-pipeline-template
+
