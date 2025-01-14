@@ -10,6 +10,9 @@ spec:
     - name: git-revision
       type: string
       description: Git revision to clone
+    - name: git-ref-type
+      type: string
+      description: Git reference type -> branch or tag
     - name: jdbc-database-secret
       type: string
       description: Secret path for JDBC Database Config
@@ -138,6 +141,30 @@ spec:
          value: $(params.jdbc-database-secret)
        - name: database-type
          value: $(params.database-type)
+      workspaces:
+       - name: source
+         workspace: git-source
+    # Liquibase tag
+    - name: liquibase-tag
+      runAfter:
+        - liquibase-update
+      taskRef:
+        name: liquibase-tag
+      when:
+        - input: "$(tasks.liquibase-status.results.status-message)"
+          operator: in
+          values: ["no"]
+        - input: "$(params.environment)"
+          operator: in
+          values: ["prod"]
+        - input: "$(params.git-ref-type)"
+          operator: in
+          values: ["tag"]
+      params:
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
+       - name: git-revision
+         value: $(params.git-revision)
       workspaces:
        - name: source
          workspace: git-source

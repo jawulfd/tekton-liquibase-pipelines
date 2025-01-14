@@ -10,6 +10,8 @@ spec:
       value: "<git-url>"
     - name: git-revision
       value: "<git-revision>"
+    - name: git-ref-type
+      value: "<git-ref-type>"
     - name: jdbc-database-secret
       value: "<jdbc-database-secret>"
     - name: root-changelog-file
