@@ -9,7 +9,7 @@ spec:
     - name: liquibase-tag
   steps:
     - name: liquibase-rollback
-      image: liquibase:4.31.0
+      image: liquibase:4.31
       workingDir: $(workspaces.source.path)
       script: |
         #!/usr/bin/env bash

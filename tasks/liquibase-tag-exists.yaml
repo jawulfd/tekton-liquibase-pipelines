@@ -11,7 +11,7 @@ spec:
       description: liquibase tag-exists message
   steps:
     - name: liquibase-tag-exists
-      image: liquibase:4.31.0
+      image: liquibase:4.31
       workingDir: $(workspaces.source.path)
       script: |
         #!/usr/bin/env bash

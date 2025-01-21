@@ -14,7 +14,7 @@ spec:
           params:
             - name: "secretRef"
               value:
-                secretName: github-secret
+                secretName: github-secret-pr
                 secretKey: secretToken
             - name: "eventTypes"
               value: ["pull_request"]
@@ -40,7 +40,7 @@ spec:
           params:
             - name: "secretRef"
               value:
-                secretName: github-secret-pr
+                secretName: github-secret-tag
                 secretKey: secretToken
             - name: "eventTypes"
               value: ["create"]
