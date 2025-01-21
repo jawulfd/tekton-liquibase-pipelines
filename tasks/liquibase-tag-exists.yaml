@@ -21,7 +21,7 @@ spec:
           --url="${JDBC_DATABASE_URL}" \
           --username="${JDBC_DATABASE_USER}" \
           --password="${JDBC_DATABASE_PASS}" \
-          --tag="${db-tag}" \
+          --tag="${liquibase-tag}" \
           tag-exists > tag-exists.log
 
         cat tag-exists

@@ -20,7 +20,7 @@ spec:
           --url="${JDBC_DATABASE_URL}" \
           --username="${JDBC_DATABASE_USER}" \
           --password="${JDBC_DATABASE_PASS}" \
-          --tag="${db-tag}" \
+          --tag="${liquibase-tag}" \
           rollback-sql
       env:
         - name: JDBC_DATABASE_URL
