@@ -18,8 +18,6 @@ spec:
       value: "example-changelog.sql"
     - name: environment
       value: "<environment>"
-    - name: database-type
-      value: "<database-type>"
   workspaces:
     - name: git-source
       volumeClaimTemplate:

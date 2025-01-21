@@ -1,0 +1,95 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: liquibase-rollback-pipeline
+spec:
+  params:
+    - name: git-url
+      type: string
+      description: Git url to clone
+    - name: git-revision
+      type: string
+      description: Git revision to clone
+    - name: liquibase-tag
+      type: string
+      description: Liquibase tag to rollback
+    - name: jdbc-database-secret
+      type: string
+      description: Secret path for JDBC Database Config
+    - name: root-changelog-file
+      type: string
+      description: Root Changelog filepath
+    - name: dry-run
+      type: string
+      description: Environment to deploy
+  workspaces:
+    - name: git-source
+  tasks:
+    # Git clone repo
+    - name: fetch-from-git
+      taskRef:
+        name: git-clone
+      params:
+       - name: url
+         value: $(params.git-url)
+       - name: revision
+         value: $(params.git-revision)
+      workspaces:
+       - name: output
+         workspace: git-source
+    # Liquibase status
+    - name: liquibase-tag-exists
+      runAfter:
+        - fetch-from-git
+      taskRef:
+        name: liquibase-tag-exists
+      params:
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
+       - name: liquibase-tag
+         value: $(params.liquibase-tag)
+      workspaces:
+       - name: source
+         workspace: git-source
+    # Liquibase rollback sql
+    - name: liquibase-rollback-sql
+      when:
+      - input: "$(tasks.liquibase-tag-exists.results.tag-exists-message)"
+        operator: in
+        values: ["yes"]
+      - input: "$(params.dry-run)"
+        operator: in
+        values: ["yes"]
+      taskRef:
+        name: liquibase-rollback-sql
+      params:
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
+       - name: root-changelog-file
+         value: $(params.root-changelog-file)
+       - name: liquibase-tag
+         value: $(params.liquibase-tag)
+      workspaces:
+       - name: source
+         workspace: git-source
+    # Liquibase rollback
+    - name: liquibase-rollback
+      taskRef:
+        name: liquibase-rollback
+      when:
+        - input: "$(tasks.liquibase-tag-exists.results.tag-exists-message)"
+          operator: in
+          values: ["yes"]
+        - input: "$(params.dry-run)"
+          operator: notin
+          values: ["yes"]
+      params:
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
+       - name: root-changelog-file
+         value: $(params.root-changelog-file)
+       - name: liquibase-tag
+         value: $(params.liquibase-tag)
+      workspaces:
+       - name: source
+         workspace: git-source

@@ -1,0 +1,29 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: liquibase-rollback-pipeline-dry-run-
+spec:
+  pipelineRef:
+    name: liquibase-rollback-pipeline
+  params:
+    - name: git-url
+      value: "<git-url>"
+    - name: git-revision
+      value: "<git-revision>"
+    - name: liquibase-tag
+      value: "<liquibase-tag>"
+    - name: jdbc-database-secret
+      value: "<jdbc-database-secret>"
+    - name: root-changelog-file
+      value: "example-changelog.sql"
+    - name: dry-run
+      value: "yes"
+  workspaces:
+    - name: git-source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 100Mi

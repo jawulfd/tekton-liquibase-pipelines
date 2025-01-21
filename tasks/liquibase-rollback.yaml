@@ -5,8 +5,8 @@ metadata:
 spec:
   params:
     - name: jdbc-database-secret
-    - name: git-tag
     - name: root-changelog-file
+    - name: liquibase-tag
   steps:
     - name: liquibase-rollback
       image: liquibase/liquibase:4.13.0
@@ -20,7 +20,7 @@ spec:
           --url="${JDBC_DATABASE_URL}" \
           --username="${JDBC_DATABASE_USER}" \
           --password="${JDBC_DATABASE_PASS}" \
-          --tag="${git-tag}" \
+          --tag="${db-tag}" \
           rollback
       env:
         - name: JDBC_DATABASE_URL
