@@ -22,9 +22,6 @@ spec:
     - name: environment
       type: string
       description: Environment to deploy
-    - name: database-type
-      type: string
-      description: Database type
   workspaces:
     - name: git-source
   tasks:
@@ -105,6 +102,28 @@ spec:
        - name: source
          workspace: git-source
     # Liquibase update
+    - name: liquibase-update-testing-rollback
+      runAfter:
+        - liquibase-snapshot
+        - liquibase-updatesql
+      taskRef:
+        name: liquibase-update-testing-rollback
+      when:
+        - input: "$(tasks.liquibase-status.results.status-message)"
+          operator: in
+          values: ["no"]
+        - input: "$(params.environment)"
+          operator: notin
+          values: ["prod"]
+      params:
+       - name: jdbc-database-secret
+         value: $(params.jdbc-database-secret)
+       - name: root-changelog-file
+         value: $(params.root-changelog-file)
+      workspaces:
+       - name: source
+         workspace: git-source
+    # Liquibase update
     - name: liquibase-update
       runAfter:
         - liquibase-snapshot
@@ -115,6 +134,9 @@ spec:
         - input: "$(tasks.liquibase-status.results.status-message)"
           operator: in
           values: ["no"]
+        - input: "$(params.environment)"
+          operator: in
+          values: ["prod"]
       params:
        - name: jdbc-database-secret
          value: $(params.jdbc-database-secret)
@@ -126,7 +148,7 @@ spec:
     # Liquibase diff
     - name: liquibase-diff
       runAfter:
-        - liquibase-update
+        - liquibase-update-testing-rollback
       when:
         - input: "$(params.environment)"
           operator: notin
@@ -139,8 +161,6 @@ spec:
       params:
        - name: jdbc-database-secret
          value: $(params.jdbc-database-secret)
-       - name: database-type
-         value: $(params.database-type)
       workspaces:
        - name: source
          workspace: git-source
