@@ -20,8 +20,7 @@ spec:
           --url="${JDBC_DATABASE_URL}" \
           --username="${JDBC_DATABASE_USER}" \
           --password="${JDBC_DATABASE_PASS}" \
-          --tag="${liquibase-tag}" \
-          rollback-sql
+          rollback-sql --tag=$(params.liquibase-tag)
       env:
         - name: JDBC_DATABASE_URL
           valueFrom:
@@ -41,4 +40,3 @@ spec:
 
   workspaces:
     - name: source
-

@@ -5,7 +5,6 @@ metadata:
 spec:
   params:
     - name: jdbc-database-secret
-    - name: database-type
   steps:
     - name: liquibase-diff
       image: liquibase:4.31
@@ -18,7 +17,7 @@ spec:
         --referenceUrl="${JDBC_DATABASE_URL}" \
         --referenceUsername="${JDBC_DATABASE_USER}" \
         --referencePassword="${JDBC_DATABASE_PASS}" \
-        --url=offline:$(params.database-type)?snapshot=snapshot.json \
+        --url="offline:${JDBC_DATABASE_TYPE}?snapshot=snapshot.json" \
         diff
       env:
         - name: JDBC_DATABASE_URL
@@ -36,5 +35,10 @@ spec:
             secretKeyRef:
               name: $(params.jdbc-database-secret)
               key: database-pass
+        - name: JDBC_DATABASE_TYPE
+          valueFrom:
+            secretKeyRef:
+              name: $(params.jdbc-database-secret)
+              key: database-type
   workspaces:
     - name: source

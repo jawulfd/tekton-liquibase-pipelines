@@ -13,15 +13,14 @@ spec:
       script: |
         #!/usr/bin/env bash
 
-        gitTag=${git-revision##*/}
+        gitTag=$(params.git-revision)
 
         /liquibase/liquibase \
           --defaultsFile=liquibase.properties \
           --url="${JDBC_DATABASE_URL}" \
           --username="${JDBC_DATABASE_USER}" \
           --password="${JDBC_DATABASE_PASS}" \
-          --tag="${gitTag}" \
-          tag
+          tag --tag="${gitTag##*/}"
       env:
         - name: JDBC_DATABASE_URL
           valueFrom:

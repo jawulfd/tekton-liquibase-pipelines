@@ -21,12 +21,11 @@ spec:
           --url="${JDBC_DATABASE_URL}" \
           --username="${JDBC_DATABASE_USER}" \
           --password="${JDBC_DATABASE_PASS}" \
-          --tag="${liquibase-tag}" \
-          tag-exists > tag-exists.log
+          tag-exists --tag=$(params.liquibase-tag) > tag-exists.log
 
-        cat tag-exists
+        cat tag-exists.log
 
-        if [[ "$(cat tag-exists)" =~ "already exists" ]]; then
+        if [[ "$(cat tag-exists.log)" =~ "already exists in" ]]; then
           echo -n "yes" >> $(results.tag-exists-message.path)
         else
           echo -n "no" >> $(results.tag-exists-message.path)
@@ -50,4 +49,3 @@ spec:
 
   workspaces:
     - name: source
-
