@@ -50,8 +50,7 @@ spec:
           params:
             - name: "filter"
               value: >-
-                body.ref_type in ['tag'] &&
-                body.master_branch in ['main', 'master']
+                body.ref_type in ['tag']
       bindings:
         - ref: liquibase-pipeline-tag-binding
         - ref: prod-env

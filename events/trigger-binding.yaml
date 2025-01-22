@@ -18,7 +18,7 @@ metadata:
 spec:
   params:
   - name: git-revision
-    value: "ref/tags/$(body.ref)"
+    value: "tags/$(body.ref)"
   - name: git-url
     value: $(body.repository.clone_url)
   - name: tag-name
