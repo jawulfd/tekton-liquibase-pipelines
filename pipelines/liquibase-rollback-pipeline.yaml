@@ -74,8 +74,6 @@ spec:
          workspace: git-source
     # Liquibase rollback
     - name: liquibase-rollback
-      taskRef:
-        name: liquibase-rollback
       when:
         - input: "$(tasks.liquibase-tag-exists.results.tag-exists-message)"
           operator: in
@@ -83,6 +81,8 @@ spec:
         - input: "$(params.dry-run)"
           operator: notin
           values: ["yes"]
+      taskRef:
+        name: liquibase-rollback
       params:
        - name: jdbc-database-secret
          value: $(params.jdbc-database-secret)

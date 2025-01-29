@@ -15,7 +15,7 @@ spec:
     - name: jdbc-database-secret
       value: "<jdbc-database-secret>"
     - name: root-changelog-file
-      value: "example-changelog.sql"
+      value: "<root-changelog-file>"
     - name: dry-run
       value: "yes"
   workspaces:
