@@ -5,11 +5,11 @@ metadata:
   name: liquibase-pipeline-template
 spec:
   params:
+    - name: git-url
+      description: The git repository url
     - name: git-revision
       description: The git revision
       default: develop
-    - name: git-url
-      description: The git repository url
     - name: git-ref-type
       description: Git reference type -> branch or tag
       default: branch
@@ -31,9 +31,7 @@ spec:
           - name: git-ref-type
             value: $(tt.params.git-ref-type)
           - name: root-changelog-file
-            value: "example-changelog.sql"
-          - name: database-type
-            value: "<database-type>"
+            value: "<root-changelog-file>"
           - name: environment
             value: $(tt.params.environment)
           - name: jdbc-database-secret
