@@ -18,3 +18,11 @@ the kubernetes secret to be able to execute the tekton pipelines and connect to 
 
 - [jdbc-postgresql-secret.yaml](jdbc-postgresql-secret.yaml) is a sample file for postgresql database
 - [jdbc-mysql-secret.yaml](jdbc-mysql-secret.yaml) is a sample file for mysql database
+
+### GitHub Secret Configuration
+
+In order to secure GitHub Webhooks, secrets can be configured in order to not trigger every call 
+to the endpoint configured in the webhook
+
+This configuration has to be configured inside EventListeners using a secret. 
+The [github-config-secret.yaml](github-config-secret.yaml) file contains sample configuration for this secret
