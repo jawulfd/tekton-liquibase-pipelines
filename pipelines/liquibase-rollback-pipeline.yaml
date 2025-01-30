@@ -58,8 +58,8 @@ spec:
         operator: in
         values: ["yes"]
       - input: "$(params.dry-run)"
-        operator: in
-        values: ["yes"]
+        operator: notin
+        values: ["no"]
       taskRef:
         name: liquibase-rollback-sql
       params:
@@ -79,8 +79,8 @@ spec:
           operator: in
           values: ["yes"]
         - input: "$(params.dry-run)"
-          operator: notin
-          values: ["yes"]
+          operator: in
+          values: ["no"]
       taskRef:
         name: liquibase-rollback
       params:
