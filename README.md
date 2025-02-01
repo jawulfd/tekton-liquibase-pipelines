@@ -21,6 +21,13 @@ The implemented Tekton Pipelines and Events have been developed using the follow
 - Tekton Triggers v0.29.1
 - Tekton Dashboard v0.52.0
 
+#### Tekton Dependencies
+
+You will need to import tasks from tekton hub which are not part of this repository. These tasks can be installed using
+either kubectl apply command or using [tekton cli](https://tekton.dev/docs/cli/)
+
+- [git-clone](https://hub.tekton.dev/tekton/task/git-clone) v0.9
+
 ### Configuration Resources
 
 In the folder [resources](resources), the different service accounts and secrets which have been configured during the
